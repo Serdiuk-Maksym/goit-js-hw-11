@@ -3,7 +3,7 @@ export { findImages };
 export { hidingBtnLoadMore };
 import axios from 'axios';
 import { Notify } from 'notiflix';
-import simpleLightbox from 'simplelightbox';
+import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.css';
 import { nameImages } from './index';
 import { galleryEl } from './index';
@@ -67,7 +67,7 @@ function createCards(arr) {
     .join('');
   return (
     galleryEl.insertAdjacentHTML('beforeend', card),
-    new simpleLightbox('.gallery a', {
+    new SimpleLightbox('.gallery a', {
       captionsData: 'alt',
       captionsDelay: 250,
       disableScroll: false,
