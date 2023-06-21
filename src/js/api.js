@@ -67,7 +67,7 @@ function createCards(arr) {
     .join('');
   return (
     galleryEl.insertAdjacentHTML('beforeend', card),
-    new SimpleLightbox('.gallery a', {
+    new simpleLightbox('.gallery a', {
       captionsData: 'alt',
       captionsDelay: 250,
       disableScroll: false,
