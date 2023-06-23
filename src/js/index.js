@@ -7,13 +7,51 @@ const galleryEl = document.querySelector('.gallery');
 const fromEl = document.querySelector('#search-form');
 const buttonEl = document.querySelector('.load-more');
 const inputEl = document.querySelector('input');
+let lightbox = null;
 let nameImages = '';
 let page = 0;
 let perPage = 40;
 fromEl.addEventListener('submit', create);
 buttonEl.addEventListener('click', loadMore);
 
+function loadMoreOnScroll() {
+  const windowHeight = window.innerHeight;
+  const documentHeight = document.documentElement.offsetHeight;
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const scrollBottom = scrollTop + windowHeight;
+
+  if (scrollBottom >= documentHeight) {
+    loadMore();
+  }
+}
+
+function loadMore() {
+  page += 1;
+  findImages(nameImages, perPage, page)
+    .then(res => {
+      if (!res.data.hits.length > 0) {
+        Notify.failure(
+          'Sorry, there are no images matching your search query. Please try again.'
+        );
+      } else {
+        // Знищення попереднього екземпляру simpleLightBox і очищення галереї
+        const lightbox =
+          document.querySelector('.gallery a').dataset.simpleLightbox;
+        if (lightbox) {
+          lightbox.destroy();
+        }
+        return createCards(res), hidingBtnLoadMore(res.data.totalHits);
+      }
+    })
+    .catch(error => {
+      Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
+    });
+}
+
 function create(e) {
+  window.addEventListener('scroll', loadMoreOnScroll);
   nameImages = '';
   page = 0;
   galleryEl.innerHTML = '';
@@ -47,31 +85,6 @@ function create(e) {
     });
 }
 
-function loadMore(e) {
-  e.preventDefault();
-  page += 1;
-  findImages(nameImages, perPage, page)
-    .then(res => {
-      if (!res.data.hits.length > 0) {
-        Notify.failure(
-          'Sorry, there are no images matching your search query. Please try again.'
-        );
-      } else {
-        // Знищення попереднього екземпляру simpleLightBox і очищення галереї
-        const lightbox =
-          document.querySelector('.gallery a').dataset.simpleLightbox;
-        if (lightbox) {
-          lightbox.destroy();
-        }
-        return createCards(res), hidingBtnLoadMore(res.data.totalHits);
-      }
-    })
-    .catch(error => {
-      Notify.failure(
-        'Sorry, there are no images matching your search query. Please try again.'
-      );
-    });
-}
 function createCards(arr) {
   const object = arr.data.hits;
   const card = object
@@ -87,7 +100,7 @@ function createCards(arr) {
       }) => {
         return ` <div class="photo-card">
    <a class="gallery-link" href="${largeImageURL}">
-    <img src="${webformatURL}" alt="${tags}" loading="lazy" width = "300" height="250"/>
+    <img src="${webformatURL}" alt="${tags}" loading="lazy" width="300" height="250"/>
     </a>
     <div class="info">
     <p class="info-item">
@@ -111,24 +124,30 @@ function createCards(arr) {
       }
     )
     .join('');
-  return (
-    galleryEl.insertAdjacentHTML('beforeend', card),
-    new SimpleLightbox('.gallery a', {
-      captionsData: 'alt',
-      captionsDelay: 250,
-      disableScroll: false,
-    }).refresh()
-  );
+  galleryEl.insertAdjacentHTML('beforeend', card);
+
+  if (lightbox) {
+    lightbox.destroy();
+  }
+
+  lightbox = new SimpleLightbox('.gallery a', {
+    captionsData: 'alt',
+    captionsDelay: 250,
+    disableScroll: false,
+  });
+  lightbox.refresh();
+
+  if (!hidingBtnLoadMore(arr.data.totalHits)) {
+    window.removeEventListener('scroll', loadMoreOnScroll);
+  }
 }
 
 function hidingBtnLoadMore(total) {
   let comparison = page * perPage < total;
   if (!comparison) {
-    (buttonEl.disabled = true),
-      Notify.failure(
-        "We're sorry, but you've reached the end of search results."
-      );
+    // ...
+    return false; // Повертаємо false, якщо всі зображення завантажено
   } else {
-    return;
+    return true;
   }
 }
