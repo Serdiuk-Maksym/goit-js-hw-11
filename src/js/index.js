@@ -57,6 +57,12 @@ function loadMore(e) {
           'Sorry, there are no images matching your search query. Please try again.'
         );
       } else {
+        // Знищення попереднього екземпляру simpleLightBox і очищення галереї
+        const lightbox =
+          document.querySelector('.gallery a').dataset.simpleLightbox;
+        if (lightbox) {
+          lightbox.destroy();
+        }
         return createCards(res), hidingBtnLoadMore(res.data.totalHits);
       }
     })
