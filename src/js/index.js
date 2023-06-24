@@ -13,6 +13,7 @@ let page = 0;
 let perPage = 40;
 fromEl.addEventListener('submit', create);
 buttonEl.addEventListener('click', loadMore);
+buttonEl.style.display = 'none';
 
 function loadMoreOnScroll() {
   const windowHeight = window.innerHeight;
